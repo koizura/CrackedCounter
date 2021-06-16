@@ -1,8 +1,11 @@
 const fs = require('fs');
 const Discord = require('discord.js');
+const Sequelize = require('sequelize');
 const client = new Discord.Client();
 const config = require('./config.json'); // console.log(config.prefix)
 const dotenv = require('dotenv');
+
+dotenv.config();
 
 client.commands = new Discord.Collection();
 client.cooldowns = new Discord.Collection();
@@ -17,19 +20,63 @@ for (const folder of commandFolders) {
 	}
 }
 
-dotenv.config();
+const sequelize = new Sequelize('database', 'user', 'password', {
+	host: 'localhost',
+	dialect: 'sqlite',
+	logging: false,
+	// SQLite only
+	storage: 'database.sqlite',
+});
+
+const Tags = sequelize.define('tags', {
+	userid: {
+		type: Sequelize.STRING,
+		unique: true,
+	},
+    username: {
+        type: Sequelize.STRING,
+    },
+	count: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+		allowNull: false,
+	},
+});
 
 client.once('ready', () => {
 	console.log('Ready!');
     client.user.setActivity('Counting is all I do. prefix: ' + config.prefix);
+    //Tags.sync({ force: true }); // resets our table every time
+    Tags.sync (); // doesn't reset our table every time
 });
 
 client.login(process.env.TOKEN);
 
-client.on('message', message => {
-	if (!message.content.startsWith(prefix) || message.author.bot) return;
+client.on('message', async message => {
+    if(message.author.bot) return;
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    if(message.content.toLocaleLowerCase().search(/cracked/) != -1) {
+        const tag = await Tags.findOne({ where: { userid: message.author.id  } });
+        if(tag) {
+            tag.increment('count');
+            //message.channel.send('Cracked counter increased by 1. Count: ' + tag.get('count'));
+        } else {
+            try {
+                const tag = await Tags.create({
+                    userid: message.author.id,
+                    username: message.author.username,
+                    count: 1,
+                });
+            } 
+            catch(e) {
+                console.log('error. something wrong with adding a tag');
+            }
+        }
+    }
+
+	if (!message.content.startsWith(config.prefix)) return;
+
+    const args = message.content.slice(config.prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
     const command = client.commands.get(commandName)
@@ -39,8 +86,6 @@ client.on('message', message => {
     
     if (!client.commands.has(commandName)) return;
     
-    const command = client.commands.get(commandName);
-
     if (command.guildOnly && message.channel.type === 'dm') {
         return message.reply('I can\'t execute that command inside DMs!');
     }
@@ -56,7 +101,7 @@ client.on('message', message => {
         let reply = `You didn't provide any arguments, ${message.author}!`;
 
         if (command.usage) {
-            reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+            reply += `\nThe proper usage would be: \`${config.prefix}${command.name} ${command.usage}\``;
         }
 
         return message.channel.send(reply);
@@ -85,9 +130,14 @@ client.on('message', message => {
     setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
     try {
-        command.execute(message, args);
+        if(command.database) {
+            command.execute(message, Tags, args);
+        }
+        else {
+            command.execute(message, args);
+        }
     } catch (error) {
-        // ...
+        message.reply("there was an error executing that command. rip.");
     }
     
 });

@@ -6,6 +6,7 @@ module.exports = {
 	aliases: ['commands'],
 	usage: '[command name]',
 	cooldown: 5,
+    database: false,
 	execute(message, args) {
 		const data = [];
 		const { commands } = message.client;

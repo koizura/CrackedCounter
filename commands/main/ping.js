@@ -6,8 +6,10 @@ module.exports = {
 	cooldown: 0.5,
 	usage: '',
 	aliases: [],
-	permissions: '',
+	database: false,
 	execute(message, args) {
-		message.channel.send(`pong!`);
+		message.channel.send('Pinging...').then(sent => {
+			sent.edit(`Roundtrip latency: ${sent.createdTimestamp - message.createdTimestamp}ms`);
+		});
 	},
 };
