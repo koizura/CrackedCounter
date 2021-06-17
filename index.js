@@ -45,7 +45,7 @@ const Tags = sequelize.define('tags', {
 
 client.once('ready', () => {
 	console.log('Ready!');
-    client.user.setActivity('Counting is all I do. prefix: ' + config.prefix);
+    client.user.setActivity('Counting is all I do. try ' + config.prefix + "help");
     //Tags.sync({ force: true }); // resets our table every time
     Tags.sync (); // doesn't reset our table every time
 });
