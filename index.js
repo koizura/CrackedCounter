@@ -56,6 +56,7 @@ client.on('message', async message => {
     if(message.author.bot) return;
 
     if(message.content.toLocaleLowerCase().search(/cracked/) != -1) {
+        
         const tag = await Tags.findOne({ where: { userid: message.author.id  } });
         if(tag) {
             tag.increment('count');
@@ -79,13 +80,9 @@ client.on('message', async message => {
     const args = message.content.slice(config.prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
-    const command = client.commands.get(commandName)
-        || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
-
+    const command = client.commands.get(commandName) || client.commands.find(c => c.aliases && c.aliases.includes(commandName));
     if (!command) return;
-    
-    if (!client.commands.has(commandName)) return;
-    
+        
     if (command.guildOnly && message.channel.type === 'dm') {
         return message.reply('I can\'t execute that command inside DMs!');
     }

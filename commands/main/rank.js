@@ -13,7 +13,21 @@ module.exports = {
         if(!message.mentions.users.size) {
             const tag = await Tags.findOne({ where: { userid: message.author.id  } });
             if(tag) {
-                message.channel.send("You've said cracked "+tag.get('count') +" times!");
+                const tagList = await Tags.findAll({ 
+                    order: [
+                        ['count', 'DESC'],
+                    ],
+                    attributes: ['userid', 'username', 'count'] 
+                });
+                let ranking = -1;
+                const id = tag.get('userid');
+                for(let i = 0; i < tagList.length; i++) {
+                    if(tagList[i].get('userid') == id) {
+                        ranking = i+1;
+                        break;
+                    }
+                }
+                message.channel.send("You've said cracked "+tag.get('count') +" times! That places you at **#" + ranking + "** on the leaderboard.");
             }
             else {
                 message.channel.send("You have not yet used the term \'Cracked\'.");
@@ -22,7 +36,15 @@ module.exports = {
             const taggedUser = message.mentions.users.first();
             const tag = await Tags.findOne({ where: { userid: taggedUser.id } });
             if(tag) {
-                message.channel.send(taggedUser.username + " said cracked "+tag.get('count') +" times!");
+                let ranking = -1;
+                const id = tag.get('id');
+                for(let i = 0; i < tagList.length; i++) {
+                    if(tagList[i].get('userid') == id) {
+                        ranking = i+1;
+                        break;
+                    }
+                }
+                message.channel.send(taggedUser.username + " said cracked "+tag.get('count') +" times! That places you at **#" + ranking + "** on the leaderboard.");
             }
             else {
                 message.channel.send("They have not yet used the term \'Cracked\'.");
