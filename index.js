@@ -62,6 +62,7 @@ client.on('message', async message => {
             tag.increment('count');
             //message.channel.send('Cracked counter increased by 1. Count: ' + tag.get('count'));
         } else {
+            console.log("need to make a new tag");
             try {
                 const tag = await Tags.create({
                     userid: message.author.id,
