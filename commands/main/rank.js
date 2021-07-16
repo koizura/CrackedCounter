@@ -43,7 +43,7 @@ module.exports = {
                     attributes: ['userid', 'username', 'count'] 
                 });
                 let ranking = -1;
-                const id = tag.get('id');
+                const id = tag.get('userid');
                 for(let i = 0; i < tagList.length; i++) {
                     if(tagList[i].get('userid') == id) {
                         ranking = i+1;
