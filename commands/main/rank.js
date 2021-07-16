@@ -36,6 +36,12 @@ module.exports = {
             const taggedUser = message.mentions.users.first();
             const tag = await Tags.findOne({ where: { userid: taggedUser.id } });
             if(tag) {
+                const tagList = await Tags.findAll({ 
+                    order: [
+                        ['count', 'DESC'],
+                    ],
+                    attributes: ['userid', 'username', 'count'] 
+                });
                 let ranking = -1;
                 const id = tag.get('id');
                 for(let i = 0; i < tagList.length; i++) {
